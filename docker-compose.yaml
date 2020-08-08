@@ -2,7 +2,7 @@ version: "3"
 
 services:
   vote:
-    build: ./vote
+    image: devopsutec.azurecr.io/inthecloud-vote-1.0.0
     command: python app.py
     volumes:
      - ./vote:/app
@@ -13,7 +13,7 @@ services:
       - back-tier
 
   result:
-    build: ./result
+    image: devopsutec.azurecr.io/inthecloud-result-1.0.0
     command: nodemon server.js
     volumes:
       - ./result:/app
@@ -25,8 +25,7 @@ services:
       - back-tier
 
   worker:
-    build:
-      context: ./worker
+    image: devopsutec.azurecr.io/inthecloud-worker-1.0.0
     depends_on:
       - "redis"
       - "db"
