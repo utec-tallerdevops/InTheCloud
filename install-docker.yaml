@@ -1,0 +1,79 @@
+---
+- hosts: all
+  remote_user: utecagent
+  become: yes
+  vars:
+    docker_compose_version: 1.26.2
+
+  handlers:
+  - name: Reiniciar docker
+    service: "name=docker state=restarted"
+
+  tasks:
+    - name: Verificar que no hay versiones de Docker instaladas
+      package:
+        name:
+          - docker
+          - docker-engine
+        state: absent
+
+    - name: Instalar dependencias de Docker
+      apt:
+        name:
+          - apt-transport-https
+          - ca-certificates
+          - gnupg2
+        state: present
+
+    - name: Agregar clave apt para el reposiorio de Docker
+      apt_key:
+        url: "https://download.docker.com/linux/{{ ansible_distribution | lower }}/gpg"
+        id: 9DC858229FC7DD38854AE2D88D81803C0EBFCD88
+        state: present
+      register: add_repository_key
+      ignore_errors: true
+
+    - name: Agregar el repositorio de Docker
+      apt_repository:
+        repo: "deb [arch=amd64] https://download.docker.com/linux/{{ ansible_distribution | lower }} {{ ansible_distribution_release }} stable"
+        state: present
+        update_cache: true
+        mode: 666
+
+    - name: Instalar Docker
+      package:
+        name: docker-ce
+        state: present
+      notify: Reiniciar docker
+
+    - name: Asegurar que Docker está iniciado y habilitado al bootear
+      service:
+        name: docker
+        state: started
+        enabled: true
+
+    - name: Chequear la versión actual de docker-compose
+      command: docker-compose --version
+      register: docker_compose_current_version
+      changed_when: false
+      failed_when: false
+
+    - name: Eliminar versión de docker compose, si existe
+      file:
+        path: "/usr/local/bin/docker-compose"
+        state: absent
+      when: >
+        docker_compose_current_version.stdout is defined
+        and docker_compose_version not in docker_compose_current_version.stdout
+
+    - name: Instalar docker-compose
+      get_url:
+        url: "https://github.com/docker/compose/releases/download/{{ docker_compose_version }}/docker-compose-Linux-x86_64"
+        dest: "/usr/local/bin/docker-compose"
+        mode: 0755
+
+    - name: Agregar usuario al grupo docker
+      user:
+        name: "utecagent"
+        groups: docker
+        append: true
