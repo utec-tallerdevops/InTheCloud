@@ -28,15 +28,15 @@ pipeline {
                     echo 'Construcción/Compilación de Imagenes en Master...'
               
                   dir('worker'){ 
-                    sh 'docker build -t devopsutec.azurecr.io/inthecloud-worker-1.0:${BUILD_NUMBER} .'
+                    sh 'docker build -t devopsutec.azurecr.io/inthecloud-worker-1.0.0'
                   }
               
                 dir('vote'){ 
-                    sh 'docker build -t devopsutec.azurecr.io/inthecloud-vote-1.0:${BUILD_NUMBER} .'
+                    sh 'docker build -t devopsutec.azurecr.io/inthecloud-vote-1.0.0'
                   }
               
                 dir('result'){ 
-                    sh 'docker build -t devopsutec.azurecr.io/inthecloud-result-1.0:${BUILD_NUMBER} .'
+                    sh 'docker build -t devopsutec.azurecr.io/inthecloud-result-1.0.0'
                   }
             }
         }
@@ -52,9 +52,9 @@ pipeline {
             steps {
                     echo 'Push de Imagenes en Master...'
                     withDockerRegistry(credentialsId: 'InTheCloud', url:'https://devopsutec.azurecr.io'){ 
-                        sh 'docker push devopsutec.azurecr.io/inthecloud-worker-1.0:${BUILD_NUMBER}'
-                        sh 'docker push devopsutec.azurecr.io/inthecloud-vote-1.0:${BUILD_NUMBER}'
-                        sh 'docker push devopsutec.azurecr.io/inthecloud-result-1.0:${BUILD_NUMBER}'
+                        sh 'docker push devopsutec.azurecr.io/inthecloud-worker-1.0.0'
+                        sh 'docker push devopsutec.azurecr.io/inthecloud-vote-1.0.0'
+                        sh 'docker push devopsutec.azurecr.io/inthecloud-result-1.0.0'
                     }
                     
             }
