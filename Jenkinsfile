@@ -4,7 +4,7 @@ pipeline {
 
     stages {
       
-        stage('Login') {
+        stage('Login en Master') {
          agent {
                 node {
                     label 'master'
@@ -16,7 +16,7 @@ pipeline {
            }
         }
         
-        stage('Construcción/Compilación de Imagenes en Master') {
+        stage('Construcción de Imagenes en agente Master') {
             agent {
                 node {
                     label 'master'
@@ -25,7 +25,7 @@ pipeline {
                 }
             }
             steps {
-                    echo 'Construcción/Compilación de Imagenes en Master...'
+                echo 'Construcción de Imagenes en agente Master...'
               
                   dir('worker'){ 
                     sh 'docker build -t devopsutec.azurecr.io/inthecloud-worker-1.0:${BUILD_NUMBER} .'
@@ -41,7 +41,7 @@ pipeline {
             }
         }
 
-        stage('Push de Imagenes en Master') {
+        stage('Push de Imagenes en agente Master') {
             agent {
                 node {
                     label 'master'
@@ -50,8 +50,8 @@ pipeline {
                 }
             }
             steps {
-                    echo 'Push de Imagenes en Master...'
-                    withDockerRegistry(credentialsId: 'InTheCloud', url:'https://devopsutec.azurecr.io'){ 
+                    echo 'Push de Imagenes en agente Master...'
+                    withDockerRegistry(credentialsId: 'inthecloud', url:'https://devopsutec.azurecr.io'){ 
                         sh 'docker push devopsutec.azurecr.io/inthecloud-worker-1.0:${BUILD_NUMBER}'
                         sh 'docker push devopsutec.azurecr.io/inthecloud-vote-1.0:${BUILD_NUMBER}'
                         sh 'docker push devopsutec.azurecr.io/inthecloud-result-1.0:${BUILD_NUMBER}'
@@ -59,79 +59,29 @@ pipeline {
                     
             }
         }
-/*
-         stage('Verificacion') {
-         agent {
-                node {
-                    label 'utec'
-                }
-            }
-            steps {
-                echo 'Ejecutando comando docker ps...'
-                sh 'docker ps'
-           }
-        }
-    */
 
-         stage('Deploy con docker-compose') {
+
+         stage('Deploy con docker-compose en agente UTEC') {
          agent {
                 node {
                     label 'utec'
                 }
             }
             steps {
-            withDockerRegistry(credentialsId: 'InTheCloud', url:'https://devopsutec.azurecr.io'){ 
-                echo 'Verificacion Pre docker-compose...'
+            withDockerRegistry(credentialsId: 'inthecloud', url:'https://devopsutec.azurecr.io'){ 
+                echo 'Verificacion previa a realizar docker-compose...'
                 echo 'Ejecutando comando docker ps...'
                 sh 'docker ps'
                 echo 'Ejecutando deploy con docker-compose up -d...'
                 sh 'docker-compose up -d'
-                echo 'Verificacion Post docker-compose...'
+                echo 'Verificacion posterior a docker-compose...'
                 echo 'Ejecutando comando docker ps...'
                 sh 'docker ps'
-                echo 'Ejecutando comando docker images...'
-                sh 'docker images'
                 }
            }
         }
 
-       /*
-         stage('Docker Compose Down') {
-         agent {
-                node {
-                    label 'utec'
-                }
-            }
-            steps {
-                echo 'Ejecutando comando docker-compose down...'
-                sh 'docker-compose down'
-           }
-        }
-        stage('Verificacion Final') {
-         agent {
-                node {
-                    label 'utec'
-                }
-            }
-            steps {
-                echo 'Ejecutando comando docker ps...'
-                sh 'docker ps'
-                echo 'Ejecutando comando docker images...'
-                sh 'docker images'
-           }
-        }
-       stage('Logout') {
-         agent {
-                node {
-                    label 'utec'
-                }
-            }
-            steps {
-                echo 'Ejecutando comando docker logout...'
-                sh 'docker logout'
-           }
-        }
-        */
+      
     }
 
         }
